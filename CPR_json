@@ -1,0 +1,38 @@
+
+import json5
+from urllib.request import urlopen as url
+import datetime
+
+
+fo = open('ticker_list.txt', 'r')
+tickers = fo.read()
+tks = tickers.split(",")
+query_const = "https://query1.finance.yahoo.com/v8/finance/chart/"
+query_var = "?formatted=true&crumb=74YZrzJNMCC&lang=en-IN&region=IN&interval=1d&period1=1595116800&period2=1596240000&events=div%7Csplit&corsDomain=in.finance.yahoo.com"
+
+for t in tks:
+    ticker = t
+    req = url(query_const+ticker+query_var)
+    cl = req.read()
+    req.close()
+    data = json5.loads(cl)
+    result = data.get("chart").get("result")[0]
+    quote = result.get("indicators").get("quote")[0]
+    timestamp = result.get("timestamp")
+    volume = quote.get("volume")
+    close = quote.get("close")
+    High = quote.get("high")
+    Low = quote.get("low")
+    # print(High)
+    # print(Low)
+    # print(close)
+    fopen = open("stock_hlc.csv", "a")
+    headers = ticker+"\n"+"Date,High,Low,Close,BC,PV,TC" + "\n"
+    fopen.write(headers)
+    for h, l, c, tm in zip(High, Low, close, timestamp):
+        BC = (h + l) / 2
+        pivot = (h + l + c) / 3
+        TC = (pivot - BC) + pivot
+        read_dt = datetime.datetime.fromtimestamp(tm)
+        date = read_dt.strftime('%Y-%m-%d %H:%M:%S')
+        fopen.write(date+","+str(h)+","+str(l)+","+str(c)+","+str(BC)+","+str(pivot)+","+str(TC)+"\n")
