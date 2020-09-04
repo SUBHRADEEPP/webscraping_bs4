@@ -1,0 +1,135 @@
+
+import bs4
+import requests
+import re
+import itertools
+from itertools import zip_longest
+
+myURL='https://en.wikipedia.org/wiki/Economy_of_India'
+
+req = requests.get(myURL)
+page_soup=bs4.BeautifulSoup(req.text,'lxml')
+
+#Retrieving all links from the page
+
+"""
+def has_href_and_no_class(exp): #function to retrieve element a with href only
+    return exp.has_attr('href') and not exp.has_attr('class')
+
+links = page_soup.find_all(has_href_and_no_class)
+
+print(len(links))
+link = links[0]
+
+for link in links:
+    print(link)
+
+atags= page_soup.find_all('a')
+print(len(atags))
+atag = atags[0]
+
+for atag in atags:
+    print(atag.get('href'))
+"""
+"""
+print(page_soup.find(href="/wiki/Developing_country"))
+print(page_soup.find(href="/wiki/Market_economy").parent)
+print(page_soup.find(href="#cite_note-Elsevier_p24-47"))
+print(page_soup.find(href="#cite_note-70"))
+print(page_soup.find(href="#cite_note-mospimines-327").parent)
+print(page_soup.find(href="http://hdr.undp.org/en/indicators/138806"))
+print(page_soup.find(href="https://data.worldbank.org/indicator/SL.TLF.TOTL.IN?locations=IN").parent)
+"""
+#Retrieving href value for all websites
+"""
+for attribute in page_soup.find_all("a",{'href':re.compile('^http')}):
+    print(attribute.get('href'))
+"""
+
+#Retrieving href value for all citations
+"""
+for attribute in page_soup.find_all("a",{'href':re.compile('^#c')}):
+    print(attribute.get('href'))
+"""
+
+#Retrieving href value for all wikipedia links
+"""
+for attribute in page_soup.find_all("a",{'href':re.compile('^/wiki')}):
+    print("https://en.wikipedia.org"+attribute.get('href'))
+"""
+
+##Retrieving all the headlines
+
+#method 1
+"""
+for hdline in page_soup.select(".toctext"):
+     print(hdline.text)
+"""
+#method 2
+"""
+for hdline in page_soup.select(".mw-headline"):
+    print(hdline.string)
+"""
+#method 3
+"""
+for hdline in page_soup.find_all("li",class_="toclevel-1"):
+    print(hdline.text)
+"""
+
+##RETRIEVING AND CLEANING TABLE
+
+"""
+wtables = page_soup.find_all("table",class_="sortable")
+print(len(wtables))
+wtable = wtables[0]
+
+wtabler = wtable.tbody
+rows = wtabler.find_all("tr")
+print(len(rows))
+
+headers=[]
+row = rows[0]
+hdr = row.find_all('th')
+#print(len(hdr))
+for hd in hdr:
+    colhd = hd.text.replace('\xa0','').rstrip()
+    headers.append(colhd)
+print(headers)
+
+for row in rows:
+    clr = []
+    cols = row.find_all('td')
+    #print(len(cols))
+    for col in cols:
+        colval = col.text.replace('\xa0','').rstrip()
+        clr.append(colval)
+    print(clr)
+"""
+
+##Retrieving all rows of a table
+
+#print(wtable.tbody)
+
+##Retrieving all table class
+"""
+for wtable in wtables:
+    print(wtable.get('class'))
+"""
+
+##Creating and Writing to a csv file
+
+file = open("paul.csv","w")
+heads = "http_sites,wiki_links,citations,headline\n"
+file.write(heads)
+
+ats= page_soup.find_all("a",{'href':re.compile('^http')})
+atts =page_soup.find_all("a",{'href':re.compile('^/wiki')})
+cits =page_soup.find_all("a",{'href':re.compile('^#c')})
+hdlines =page_soup.select(".mw-headline")
+
+for (att,cit,at,hd) in zip_longest(atts,cits,ats,hdlines,fillvalue=None):
+    http_site = at.get('href')
+    wiki_link = "https://en.wikipedia.org"+att.get('href')
+    citations = cit.get('href')
+    headlines = hd.text
+    file.write(http_site+","+citations+","+wiki_link+","+headlines+"\n")
