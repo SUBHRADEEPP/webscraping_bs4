@@ -1,0 +1,34 @@
+
+from urllib.request import urlopen as req
+import bs4
+
+# url:https://eoddata.com/stocklist/NYSE/A.htm
+
+fop = open('alphabet.txt', 'r')
+data_raw = fop.read()
+data = data_raw.split(',')
+url_const1 = "https://eoddata.com/stocklist/NYSE/"
+url_const2 = ".htm"
+fw = open('stocks_10_65.txt', 'w')
+for alpha in data:
+    url = req(url_const1+alpha+url_const2)
+    p_html = url.read()
+    url.close()
+    page_soup = bs4.BeautifulSoup(p_html, 'lxml')
+    tab = page_soup.find("table",  class_="quotes")
+    trows = tab.find_all("tr", class_=['ro', 're'])
+    for i in trows:
+        tcols = i.find_all("td")
+        try:
+            tcl = float(tcols[4].text)
+            tc = int(tcl)
+        except ValueError:
+            tcl = tcols[4].text
+            tcl = float(tcl.replace(',', ''))
+            tc = int(tcl)
+        if tc > 10 and tc < 65:
+            links = i.find("a")
+            link_text = links.string
+            fw.write(link_text+",")
+
+
