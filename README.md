@@ -1,3 +1,3 @@
 # webscraping_bs4
-fundamental python and web scraping practice
+Fundamental python and web scraping practice.<br>
 Scraping Various sites for data extraction
